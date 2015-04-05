@@ -22,10 +22,10 @@ fetchAndCache = (key, url, callback) ->
     .end (err, sres) ->
       return callback? err if err
       doc =
-        key: key
+        _id: key
         headers: _.pick(sres.headers, 'content-type', 'content-length', 'etag')
         body: sres.body
-      db.cache.update { key: key }, doc, { upsert: true }
+      db.cache.update { _id: key }, doc, { upsert: true }
       callback? null, doc
 debouncedFetchAndCache = _.debounce fetchAndCache, parseInt THROTTLE_TIME
 
@@ -37,7 +37,7 @@ paths = PATHS.split ','
 for path in paths
   app.get path, (req, res, next) ->
     key = req.url
-    db.cache.findOne { key: key }, (err, cached) ->
+    db.cache.findOne { _id: key }, (err, cached) ->
       return next err if err
       if cached
         res.set(cached.headers).send cached.body
