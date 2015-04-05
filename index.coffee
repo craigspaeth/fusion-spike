@@ -16,6 +16,7 @@ proxy = httpProxy.createProxyServer()
 
 # Helper to cache an endpoint
 fetchAndCache = (key, url, callback) ->
+  console.log 'FETCH', key
   request
     .get(ARTSY_URL + url)
     .set('x-xapp-token': xappToken)
@@ -27,12 +28,12 @@ fetchAndCache = (key, url, callback) ->
         body: sres.body
       db.cache.update { _id: key }, doc, { upsert: true }
       callback? null, doc
-debouncedFetchAndCache = _.throttle fetchAndCache, parseInt THROTTLE_TIME
 
 # CORS support
 app.use cors()
 
 # Cache configured routes
+debounced = {}
 paths = PATHS.split ','
 for path in paths
   app.get path, (req, res, next) ->
@@ -41,7 +42,11 @@ for path in paths
       return next err if err
       if cached
         res.set(cached.headers).send cached.body
-        debouncedFetchAndCache key, req.url
+        debounced[key] ?= _.debounce(
+          (-> fetchAndCache key, req.url)
+          parseInt(THROTTLE_TIME)
+        )
+        debounced[key]()
       else
         fetchAndCache key, req.url, (err, doc) ->
           return next err if err
