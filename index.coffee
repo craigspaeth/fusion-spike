@@ -51,6 +51,14 @@ for path in paths
 app.use (req, res, next) ->
   proxy.web req, res, { target: ARTSY_URL }
 
+# Display similar errors
+app.use (err, req, res, next) ->
+  if err.status
+    body = if _.isEmpty(b = err.response.body) then err.response.text else b
+    res.status(err.status).send(body)
+  else
+    next err
+
 # Fetch & hoist an xapp token
 request
   .post("#{ARTSY_URL}/api/tokens/xapp_token")
