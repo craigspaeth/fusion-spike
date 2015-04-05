@@ -40,7 +40,8 @@
     "mongojs": "*",
     "debug": "*",
     "http-proxy": "*",
-    "newrelic": "*"
+    "newrelic": "*",
+    "cors": "*"
   },
   "devDependencies": {
     "mocha": "^2.2.1"

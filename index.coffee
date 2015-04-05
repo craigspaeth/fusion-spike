@@ -5,6 +5,7 @@ request = require 'superagent'
 mongojs = require 'mongojs'
 debug = require('debug') 'app'
 httpProxy = require 'http-proxy'
+cors = require 'cors'
 { NODE_ENV, ARTSY_URL, PORT, ARTSY_ID, ARTSY_SECRET,
   MONGOHQ_URL, THROTTLE_TIME, PATHS } = process.env
 xappToken = 'token'
@@ -27,6 +28,9 @@ fetchAndCache = (key, url, callback) ->
       db.cache.update { key: key }, doc, { upsert: true }
       callback? null, doc
 debouncedFetchAndCache = _.debounce fetchAndCache, parseInt THROTTLE_TIME
+
+# CORS support
+app.use cors()
 
 # Cache configured routes
 paths = PATHS.split ','
