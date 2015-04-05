@@ -8,11 +8,11 @@ exports.config = {
   /**
    * Array of application names.
    */
-  app_name : ['fusion-production'],
+  app_name : [process.env.APP_NAME],
   /**
    * Your New Relic license key.
    */
-  license_key : '522b2439f42ba5cf804aaee4577b091f0e7e3853',
+  license_key : process.env.NEW_RELIC_LICENSE_KEY,
   logging : {
     /**
      * Level at which to log. 'trace' is most useful to New Relic when diagnosing
