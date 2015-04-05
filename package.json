@@ -38,7 +38,8 @@
     "express": "*",
     "superagent": "*",
     "mongojs": "*",
-    "debug": "*"
+    "debug": "*",
+    "http-proxy": "*"
   },
   "devDependencies": {
     "mocha": "^2.2.1"

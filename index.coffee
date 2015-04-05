@@ -3,13 +3,16 @@ express = require 'express'
 request = require 'superagent'
 mongojs = require 'mongojs'
 debug = require('debug') 'app'
+httpProxy = require 'http-proxy'
 { NODE_ENV, ARTSY_URL, PORT, ARTSY_ID, ARTSY_SECRET,
-  MONGOHQ_URL, THROTTLE_TIME } = process.env
+  MONGOHQ_URL, THROTTLE_TIME, PATHS } = process.env
 xappToken = 'token'
 
 db = mongojs MONGOHQ_URL, ['cache']
 app = express()
+proxy = httpProxy.createProxyServer()
 
+# Helper to cache an endpoint
 fetchAndCache = (key, url, callback) ->
   request
     .get(ARTSY_URL + url)
@@ -24,21 +27,26 @@ fetchAndCache = (key, url, callback) ->
       callback? null, doc
 debouncedFetchAndCache = _.debounce fetchAndCache, parseInt THROTTLE_TIME
 
-app.get '/', (req, res, next) ->
-  res.send "Welcome to Fusion!"
+# Cache configured routes
+paths = PATHS.split ','
+for path in paths
+  app.get path, (req, res, next) ->
+    key = req.url
+    db.cache.findOne { key: key }, (err, cached) ->
+      return next err if err
+      if cached
+        res.set(cached.headers).send cached.body
+        debouncedFetchAndCache key, req.url
+      else
+        fetchAndCache key, req.url, (err, doc) ->
+          return next err if err
+          res.set(doc.headers).send doc.body
 
-app.get '/api/v1/*', (req, res, next) ->
-  key = req.url
-  db.cache.findOne { key: key }, (err, cached) ->
-    return next err if err
-    if cached
-      res.set(cached.headers).send cached.body
-      debouncedFetchAndCache key, req.url
-    else
-      fetchAndCache key, req.url, (err, doc) ->
-        return next err if err
-        res.set(doc.headers).send doc.body
+# Proxy the rest of Gravity
+app.use (req, res, next) ->
+  proxy.web req, res, { target: ARTSY_URL }
 
+# Fetch & hoist an xapp token
 request
   .post("#{ARTSY_URL}/api/tokens/xapp_token")
   .send(client_id: ARTSY_ID, client_secret: ARTSY_SECRET)
