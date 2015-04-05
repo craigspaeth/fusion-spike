@@ -1,3 +1,4 @@
+require 'newrelic'
 _ = require 'underscore'
 express = require 'express'
 request = require 'superagent'
