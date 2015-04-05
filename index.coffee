@@ -16,7 +16,6 @@ proxy = httpProxy.createProxyServer()
 
 # Helper to cache an endpoint
 fetchAndCache = (key, url, callback) ->
-  console.log 'FETCH', key
   request
     .get(ARTSY_URL + url)
     .set('x-xapp-token': xappToken)
