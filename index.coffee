@@ -27,7 +27,7 @@ fetchAndCache = (key, url, callback) ->
         body: sres.body
       db.cache.update { _id: key }, doc, { upsert: true }
       callback? null, doc
-debouncedFetchAndCache = _.debounce fetchAndCache, parseInt THROTTLE_TIME
+debouncedFetchAndCache = _.throttle fetchAndCache, parseInt THROTTLE_TIME
 
 # CORS support
 app.use cors()
