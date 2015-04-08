@@ -43,7 +43,7 @@ for path in paths
       if cached
         res.set(cached.headers).send cached.body
         debounced[key] ?= _.debounce(
-          (-> fetchAndCache key, req.url)
+          (-> fetchAndCache key, req.url, -> debounced[key] = null)
           parseInt(THROTTLE_TIME)
         )
         debounced[key]()
